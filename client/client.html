@@ -1,13 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Our simple HTTP server</title>
   <link rel="stylesheet" type="text/css" href="/style.css">
-  
-  <script>
 
+  <script>
+    const handleResponse = async (response) => {
+      // Convert response to plain text
+      response.text().then((resText) => {
+        // Print raw response text
+        console.log(resText);
+
+        // Locate and store content type
+        const contentType = response.headers.get('Content-Type');
+
+        // Grab content element
+        const content = document.querySelector('#content');
+
+        // Display response status
+        switch (response.status) {
+          case 200:
+            content.innerHTML = '<h1><b>Success</b></h1>';
+            break;
+          case 400:
+            content.innerHTML = '<h1><b>Bad Request</b></h1>';
+            break;
+          case 401:
+            content.innerHTML = '<h1><b>Unauthorized</b></h1>';
+            break;
+          case 403:
+            content.innerHTML = '<h1><b>Forbidden</b></h1>';
+            break;
+          case 500:
+            content.innerHTML = '<h1><b>Internal Server Error</b></h1>';
+            break;
+          case 501:
+            content.innerHTML = '<h1><b>Not Implimented</b></h1>';
+            break;
+          case 404:
+            content.innerHTML = '<h1><b>Not Found</b></h1>';
+            break;
+        }
+
+        // Display response message and properly parse depending on type
+        if (contentType === 'application/json') {
+          const parsedResponse = JSON.parse(resText);
+          content.innerHTML += `<p>Message: ${parsedResponse.message}</p>`;
+        }
+        else if (contentType === 'text/xml') {
+          const parsedResponse = new window.DOMParser().parseFromString(resText, 'text/xml');
+          content.innerHTML += `<p>Message: ${parsedResponse.querySelector('message').textContent}</p>`;
+        }
+      });
+    };
+
+    const sendFetchRequest = (url, acceptedType) => {
+      // Set request parameters
+      const options = {
+        method: 'GET',
+        headers: { 'Accept': acceptedType }
+      }
+
+      // Send fetch request then handle response
+      const fetchPromise = fetch(url, options);
+      fetchPromise.then((response) => { handleResponse(response) });
+    };
+
+    const init = () => {
+      // Grab dropdowns
+      const pageSelect = document.querySelector('#page');
+      const typeSelect = document.querySelector('#type');
+
+      // Create fetch request function with values
+      const sendRequest = () => sendFetchRequest(pageSelect.value, typeSelect.value);
+
+      // Grab the send button and assign it the request
+      const sendButton = document.querySelector('#send');
+      sendButton.addEventListener('click', sendRequest);
+    };
+
+    window.onload = init;
   </script>
 </head>
+
 <body>
   <section id="top">
     <h3>Status Code Tests</h3>
@@ -29,4 +105,5 @@
   <section id="content">
   </section>
 </body>
+
 </html>
