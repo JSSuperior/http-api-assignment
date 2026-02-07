@@ -19,7 +19,7 @@ const respond = (request, response, status, content) => {
 
     // Write head and body
     response.writeHead(status, {
-        'Content-type': contentType,
+        'Content-Type': contentType,
         'Content-Length': Buffer.byteLength(formattedContent, 'utf8'),
     });
     response.write(formattedContent);
